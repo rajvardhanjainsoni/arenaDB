@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .font-display {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .glass-card {
+    background: rgba(17, 24, 39, 0.7); /* slate-900 equivalent */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(30, 41, 59, 0.8); /* border-slate-800/80 */
+  }
+
+  .glass-card-hover {
+    transition: all 0.25s ease-in-out;
+  }
+  .glass-card-hover:hover {
+    border-color: rgba(6, 182, 212, 0.4); /* neon cyan */
+    box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.35); /* neon cyan */
+  }
+
+  .glow-violet {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.35); /* electric violet */
+  }
+
+  .glow-rose {
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.35); /* rose pink */
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); /* gold neon */
+  }
+
+  .glow-silver {
+    box-shadow: 0 0 30px rgba(226, 232, 240, 0.4); /* silver neon */
+  }
+
+  .glow-bronze {
+    box-shadow: 0 0 30px rgba(217, 119, 6, 0.4); /* bronze neon */
+  }
+
+  .polaroid-card {
+    background: linear-gradient(145deg, rgba(17, 24, 39, 0.95), rgba(10, 15, 26, 0.98));
+    border: 4px solid #ffffff;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0f19; /* obsidian */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #111827; /* slate-dark */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1e293b; /* lighter slate */
+}
