@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, X, Mail, Calendar, Shield, Award, Sparkles, CheckCircle2, Cpu, Edit3, Trash2, Save, ArrowRightLeft, Image, Zap, TrendingUp, Flame } from 'lucide-react';
+import { User, X, Mail, Calendar, Shield, Award, Sparkles, CheckCircle2, Cpu, Edit3, Trash2, Save, ArrowRightLeft, Image, Zap, TrendingUp, Flame, Coins } from 'lucide-react';
 import { AvatarImage, AvatarPickerModal } from './Avatar';
 
 export default function PlayerModal({ playerId, playerData, onClose, onSelectTeam }) {
@@ -343,6 +343,9 @@ export default function PlayerModal({ playerId, playerData, onClose, onSelectTea
                   </span>
                   <span className="text-xs text-amber-400 font-bold bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
                     <Zap className="w-3 h-3 fill-amber-400" /> LVL {playerLevel}
+                  </span>
+                  <span className="text-xs text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                    <Coins className="w-3 h-3 text-emerald-400" /> {player?.credits != null ? player.credits.toLocaleString() : 2500} CR
                   </span>
                   <span className="text-xs text-slate-400 font-mono">#PRO-{player?.player_id ? player.player_id + 1040 : '1001'}</span>
                 </div>

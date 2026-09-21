@@ -211,7 +211,7 @@ app.get('/api/games', async (req, res) => {
 // 7. GET /api/players
 app.get('/api/players', async (req, res) => {
   try {
-    const rows = await queryDB('SELECT player_id, username, email, rank, joined_date FROM PLAYER ORDER BY username;');
+    const rows = await queryDB('SELECT player_id, username, email, rank, credits, joined_date FROM PLAYER ORDER BY username;');
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching players:', err);
@@ -230,7 +230,7 @@ app.get('/api/teams/:id', async (req, res) => {
       WHERE t.team_id = $1;
     `;
     const membersSql = `
-      SELECT p.player_id, p.username, p.email, p.rank, tm.joined_date
+      SELECT p.player_id, p.username, p.email, p.rank, p.credits, tm.joined_date
       FROM TEAM_MEMBER tm
       INNER JOIN PLAYER p ON tm.player_id = p.player_id
       WHERE tm.team_id = $1;
@@ -250,7 +250,7 @@ app.get('/api/players/:id', async (req, res) => {
   const playerId = parseInt(req.params.id);
   try {
     const playerSql = `
-      SELECT p.player_id, p.username, p.email, p.rank, p.joined_date, tm.team_id, t.team_name
+      SELECT p.player_id, p.username, p.email, p.rank, p.credits, p.joined_date, tm.team_id, t.team_name
       FROM PLAYER p
       LEFT JOIN TEAM_MEMBER tm ON p.player_id = tm.player_id
       LEFT JOIN TEAM t ON tm.team_id = t.team_id
@@ -472,6 +472,145 @@ app.post('/api/campaigns', async (req, res) => {
   } catch (err) { 
     console.error('Error creating campaign:', err);
     res.status(500).json({ error: err.message || 'Failed to create campaign' }); 
+  }
+});
+
+// ============================================================
+// NOVELTY MODULE: IN-GAME STORE & VIRTUAL CURRENCY
+// ============================================================
+
+// 22. GET /api/store
+app.get('/api/store', async (req, res) => {
+  try {
+    const sql = `
+      SELECT s.item_id, s.name, s.item_type, s.rarity, s.price_credits, s.image_url, g.title AS game_title 
+      FROM STORE_ITEM s 
+      INNER JOIN GAME g ON s.game_id = g.game_id 
+      ORDER BY s.price_credits DESC;
+    `;
+    const rows = await queryDB(sql);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching store items:', err);
+    res.status(500).json({ error: err.message || 'Failed to fetch store items' });
+  }
+});
+
+// 23. GET /api/players/:playerId/inventory
+app.get('/api/players/:playerId/inventory', async (req, res) => {
+  const playerId = parseInt(req.params.playerId);
+  try {
+    const sql = `
+      SELECT i.inventory_id, s.name, s.item_type, s.rarity, s.image_url, g.title AS game_title, i.purchase_date
+      FROM PLAYER_INVENTORY i
+      INNER JOIN STORE_ITEM s ON i.item_id = s.item_id
+      INNER JOIN GAME g ON s.game_id = g.game_id
+      WHERE i.player_id = $1
+      ORDER BY i.purchase_date DESC;
+    `;
+    const rows = await queryDB(sql, [playerId]);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching inventory:', err);
+    res.status(500).json({ error: err.message || 'Failed to fetch inventory' });
+  }
+});
+
+// 24. POST /api/store/buy (ACID Transaction)
+app.post('/api/store/buy', async (req, res) => {
+  const { player_id, item_id } = req.body;
+  
+  if (!player_id || !item_id) {
+    return res.status(400).json({ error: 'Missing player_id or item_id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN'); // Start Transaction
+    
+    // 1. Get player credits
+    const playerRes = await client.query('SELECT credits FROM PLAYER WHERE player_id = $1', [player_id]);
+    if (playerRes.rows.length === 0) {
+      throw new Error('Player not found');
+    }
+    const credits = playerRes.rows[0].credits;
+    
+    // 2. Get item price
+    const itemRes = await client.query('SELECT price_credits FROM STORE_ITEM WHERE item_id = $1', [item_id]);
+    if (itemRes.rows.length === 0) {
+      throw new Error('Item not found');
+    }
+    const price = itemRes.rows[0].price_credits;
+    
+    // 3. Check affordability
+    if (credits < price) {
+      throw new Error('Insufficient credits');
+    }
+    
+    // 4. Deduct credits and add item
+    await client.query('UPDATE PLAYER SET credits = credits - $1 WHERE player_id = $2', [price, player_id]);
+    await client.query('INSERT INTO PLAYER_INVENTORY (player_id, item_id) VALUES ($1, $2)', [player_id, item_id]);
+    
+    await client.query('COMMIT'); // Commit Transaction
+    
+    return res.json({ message: 'Purchase successful', remaining_credits: credits - price });
+  } catch (err) {
+    await client.query('ROLLBACK'); // Rollback Transaction on error
+    console.error('Error processing purchase:', err.message);
+    res.status(400).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// 25. POST /api/store/refund (ACID Transaction)
+app.post('/api/store/refund', async (req, res) => {
+  const { player_id, item_id } = req.body;
+  
+  if (!player_id || !item_id) {
+    return res.status(400).json({ error: 'Missing player_id or item_id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN'); // Start Transaction
+    
+    // 1. Check if item exists in player inventory
+    const invRes = await client.query(
+      'SELECT inventory_id FROM PLAYER_INVENTORY WHERE player_id = $1 AND item_id = $2 LIMIT 1',
+      [player_id, item_id]
+    );
+    if (invRes.rows.length === 0) {
+      throw new Error('Item not found in player inventory');
+    }
+    const inventoryId = invRes.rows[0].inventory_id;
+
+    // 2. Delete item from inventory
+    await client.query('DELETE FROM PLAYER_INVENTORY WHERE inventory_id = $1', [inventoryId]);
+    
+    // 3. Get item price
+    const itemRes = await client.query('SELECT price_credits FROM STORE_ITEM WHERE item_id = $1', [item_id]);
+    if (itemRes.rows.length === 0) {
+      throw new Error('Item not found');
+    }
+    const price = itemRes.rows[0].price_credits;
+    
+    // 4. Refund credits to player
+    const playerRes = await client.query(
+      'UPDATE PLAYER SET credits = credits + $1 WHERE player_id = $2 RETURNING credits',
+      [price, player_id]
+    );
+    const updatedCredits = playerRes.rows[0].credits;
+    
+    await client.query('COMMIT'); // Commit Transaction
+    
+    return res.json({ message: 'Refund successful', remaining_credits: updatedCredits });
+  } catch (err) {
+    await client.query('ROLLBACK'); // Rollback Transaction on error
+    console.error('Error processing refund:', err.message);
+    res.status(400).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 

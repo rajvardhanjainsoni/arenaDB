@@ -6,7 +6,8 @@ import TelemetryWidget from './components/TelemetryWidget';
 import RosterManagement from './components/RosterManagement';
 import TeamModal from './components/TeamModal';
 import PlayerModal from './components/PlayerModal';
-import { Trophy, Crown, Megaphone, Activity, Database, ShieldAlert, CheckCircle2, Terminal, Users } from 'lucide-react';
+import StoreView from './components/StoreView';
+import { Trophy, Crown, Megaphone, Activity, Database, ShieldAlert, CheckCircle2, Terminal, Users, ShoppingCart } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('tournaments');
@@ -91,6 +92,17 @@ export default function App() {
             </button>
 
             <button
+              onClick={() => setActiveTab('store')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                activeTab === 'store'
+                  ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/25 font-bold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" /> Armory & Store
+            </button>
+
+            <button
               onClick={() => setActiveTab('publicity')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
                 activeTab === 'publicity'
@@ -156,6 +168,12 @@ export default function App() {
             Leaderboard
           </button>
           <button
+            onClick={() => setActiveTab('store')}
+            className={`px-3 py-1.5 rounded-md ${activeTab === 'store' ? 'bg-emerald-500 text-black font-bold' : 'text-slate-400'}`}
+          >
+            Store
+          </button>
+          <button
             onClick={() => setActiveTab('publicity')}
             className={`px-3 py-1.5 rounded-md ${activeTab === 'publicity' ? 'bg-emerald-500 text-black font-bold' : 'text-slate-400'}`}
           >
@@ -189,6 +207,9 @@ export default function App() {
             onOpenTeamModal={(id) => setSelectedTeamId(id)}
             onOpenPlayerModal={(id) => setSelectedPlayerId(id)}
           />
+        )}
+        {activeTab === 'store' && (
+          <StoreView />
         )}
         {activeTab === 'publicity' && (
           <PublicityView 

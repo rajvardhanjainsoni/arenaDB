@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Crown, Gamepad2, Users, Flame, Award, Shield, Percent, AlertTriangle, RefreshCw, Trophy, Sparkles } from 'lucide-react';
 
 export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) {
@@ -23,7 +24,7 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
       })
       .catch(err => {
         console.error('Failed to fetch games list:', err);
-        setErrorMsg('Unable to connect to backend server. Make sure the server is running on http://localhost:5001.');
+        setErrorMsg('Unable to connect to backend server. Make sure server is active.');
       });
   }, []);
 
@@ -58,7 +59,6 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
   const top2 = podiumTeams[1] || null;
   const top3 = podiumTeams[2] || null;
 
-  // Helper for game badge colors
   const getGameBadgeColor = (title) => {
     switch (title?.toLowerCase()) {
       case 'valorant': return 'from-rose-500 to-red-600 text-white';
@@ -83,9 +83,7 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
           <button 
             onClick={() => {
               setErrorMsg(null);
-              if (selectedGameId) {
-                setSelectedGameId(selectedGameId);
-              }
+              if (selectedGameId) setSelectedGameId(selectedGameId);
             }}
             className="px-3 py-1 bg-rose-900/60 hover:bg-rose-800 text-rose-200 rounded-lg text-xs font-semibold border border-rose-500/30 transition flex items-center gap-1"
           >
@@ -95,12 +93,12 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
       )}
 
       {/* Header & Game Selector Bar */}
-      <div className="glass-card rounded-2xl p-6 relative overflow-hidden border border-purple-500/30">
+      <div className="glass-card rounded-2xl p-6 relative overflow-hidden border border-purple-500/30 shadow-2xl">
         <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div>
             <div className="flex items-center gap-2 text-purple-400 font-semibold text-xs uppercase tracking-widest mb-1">
-              <Crown className="w-4 h-4 text-amber-400" /> Top 10 Esports Circuit Standing
+              <Crown className="w-4 h-4 text-amber-400" /> Esports Circuit Standings
             </div>
             <h1 className="text-3xl font-black text-white font-display tracking-tight flex items-center gap-2">
               Esports Championship Leaderboard
@@ -128,7 +126,7 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
         {/* Colored Badges Bar for Games */}
         <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-800/80 overflow-x-auto pb-1">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider mr-2 shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Select Circuit:
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Circuit Filter:
           </span>
           {games.map((g) => {
             const isSelected = g.game_id === Number(selectedGameId);
@@ -151,45 +149,47 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
       </div>
 
       {loading ? (
-        <div className="glass-card rounded-2xl p-16 text-center text-slate-400 animate-pulse border border-slate-800">
+        <div className="glass-card rounded-2xl p-16 text-center text-slate-400 border border-slate-800">
           <div className="w-12 h-12 rounded-full border-4 border-cyan-500 border-t-transparent animate-spin mx-auto mb-4"></div>
-          <span className="font-semibold text-lg">Computing standings & ranking metrics...</span>
+          <span className="font-semibold text-lg">Computing circuit metrics & match scores...</span>
         </div>
       ) : leaderboard.length === 0 ? (
         <div className="glass-card rounded-2xl p-16 text-center border border-slate-800">
           <Award className="w-16 h-16 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-xl font-bold text-white">No Standings Available</h3>
-          <p className="text-slate-400 text-sm mt-1">No matches have been recorded for this game circuit yet.</p>
+          <h3 className="text-xl font-bold text-white">No Standings Recorded</h3>
+          <p className="text-slate-400 text-sm mt-1">No matches recorded for this game circuit yet.</p>
         </div>
       ) : (
         <>
-          {/* ============================================================ */}
           {/* TOP 3 PODIUM SECTION (GOLD, SILVER, BRONZE GLOWING EFFECTS) */}
-          {/* ============================================================ */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-extrabold text-white flex items-center gap-2 font-display">
-                <Trophy className="w-5 h-5 text-amber-400" /> Top 3 Podium Champions
+                <Trophy className="w-5 h-5 text-amber-400" /> Top 3 Circuit Champions
               </h2>
               <span className="text-xs text-amber-400 font-semibold bg-amber-950/60 px-3 py-1 rounded-full border border-amber-500/30">
-                Click team card to view roster
+                Click team card to view roster details
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4 pb-2 items-end">
-              {/* ---------------- 2ND PLACE (SILVER) ---------------- */}
+              {/* 2ND PLACE (SILVER) */}
               {top2 ? (
-                <div 
+                <motion.div 
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  whileHover={{ y: -12, scale: 1.03 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 22, delay: 0.2 }}
                   onClick={() => onOpenTeamModal && onOpenTeamModal(top2.team_id)}
-                  className="order-2 md:order-1 transform md:-rotate-2 hover:rotate-0 transition duration-300 cursor-pointer group"
+                  className="order-2 md:order-1 cursor-pointer group"
                 >
-                  <div className="polaroid-card rounded-2xl p-5 border-2 border-slate-200/90 glow-silver relative overflow-hidden group-hover:border-cyan-400">
-                    <div className="bg-gradient-to-b from-slate-900 to-[#0c101c] p-5 rounded-xl border border-slate-700/80">
+                  <div className="polaroid-card rounded-2xl p-5 border-2 border-slate-300/90 breathing-glow-silver relative overflow-hidden group-hover:border-cyan-400">
+                    <div className="bg-gradient-to-b from-slate-900 via-slate-950 to-[#0c101c] p-5 rounded-xl border border-slate-700/80">
                       <div className="flex items-center justify-between mb-4">
                         <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-200 text-slate-950 tracking-wider flex items-center gap-1 shadow-md">
                           <Award className="w-4 h-4 text-slate-900" /> #2 SILVER
                         </span>
-                        <span className="text-xs text-cyan-400 font-mono font-semibold underline group-hover:text-white">View Roster &rarr;</span>
+                        <span className="text-xs text-cyan-400 font-mono font-semibold underline group-hover:text-white">Roster &rarr;</span>
                       </div>
 
                       <div className="text-center py-3">
@@ -220,36 +220,27 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* ---------------- 2ND PLACE TBD PLACEHOLDER ---------------- */
-                <div className="order-2 md:order-1 transform md:-rotate-2 opacity-50">
-                  <div className="polaroid-card rounded-2xl p-5 border-2 border-slate-800 relative overflow-hidden">
-                    <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-800 text-center py-8">
-                      <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-800 text-slate-400 tracking-wider inline-flex items-center gap-1">
-                        <Award className="w-4 h-4 text-slate-500" /> #2 SILVER (TBD)
-                      </span>
-                      <h3 className="text-xl font-bold text-slate-500 mt-4 font-display">TBD</h3>
-                      <p className="text-xs text-slate-600 mt-1">Awaiting Runner-Up Qualification</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                </motion.div>
+              ) : null}
 
-              {/* ---------------- 1ST PLACE (GOLD - ELEVATED) ---------------- */}
+              {/* 1ST PLACE (GOLD - ELEVATED) */}
               {top1 ? (
-                <div 
+                <motion.div 
+                  initial={{ opacity: 0, y: 60, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  whileHover={{ y: -16, scale: 1.04 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 22, delay: 0.1 }}
                   onClick={() => onOpenTeamModal && onOpenTeamModal(top1.team_id)}
-                  className="order-1 md:order-2 transform md:-translate-y-6 hover:translate-y-[-28px] transition duration-300 cursor-pointer group"
+                  className="order-1 md:order-2 transform md:-translate-y-6 cursor-pointer group"
                 >
-                  <div className="polaroid-card rounded-2xl p-5 border-4 border-amber-400 glow-gold relative overflow-hidden group-hover:border-yellow-300">
+                  <div className="polaroid-card rounded-2xl p-5 border-4 border-amber-400 breathing-glow-gold relative overflow-hidden group-hover:border-yellow-300">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 rounded-bl-full pointer-events-none"></div>
-                    <div className="bg-gradient-to-b from-amber-950/40 via-slate-900 to-[#0c101c] p-6 rounded-xl border border-amber-500/40">
+                    <div className="bg-gradient-to-b from-amber-950/50 via-slate-950 to-[#0c101c] p-6 rounded-xl border border-amber-500/40">
                       <div className="flex items-center justify-between mb-4">
                         <span className="px-3.5 py-1 rounded-full text-xs font-black bg-gradient-to-r from-amber-400 to-yellow-300 text-black tracking-wider flex items-center gap-1.5 shadow-lg shadow-amber-500/30">
                           <Crown className="w-4 h-4 fill-black" /> #1 CHAMPION
                         </span>
-                        <span className="text-xs text-amber-300 font-mono font-semibold underline group-hover:text-white">View Roster &rarr;</span>
+                        <span className="text-xs text-amber-300 font-mono font-semibold underline group-hover:text-white">Roster &rarr;</span>
                       </div>
 
                       <div className="text-center py-4">
@@ -284,35 +275,26 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* ---------------- 1ST PLACE TBD PLACEHOLDER ---------------- */
-                <div className="order-1 md:order-2 transform md:-translate-y-6 opacity-50">
-                  <div className="polaroid-card rounded-2xl p-5 border-4 border-slate-700 relative overflow-hidden">
-                    <div className="bg-slate-900/60 p-6 rounded-xl border border-slate-800 text-center py-10">
-                      <span className="px-3.5 py-1 rounded-full text-xs font-black bg-slate-800 text-slate-400 tracking-wider inline-flex items-center gap-1">
-                        <Crown className="w-4 h-4 text-slate-500" /> #1 CHAMPION (TBD)
-                      </span>
-                      <h3 className="text-2xl font-bold text-slate-500 mt-4 font-display">TBD</h3>
-                      <p className="text-xs text-slate-600 mt-1">Awaiting Circuit Champion</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                </motion.div>
+              ) : null}
 
-              {/* ---------------- 3RD PLACE (BRONZE) ---------------- */}
+              {/* 3RD PLACE (BRONZE) */}
               {top3 ? (
-                <div 
+                <motion.div 
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  whileHover={{ y: -12, scale: 1.03 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 22, delay: 0.3 }}
                   onClick={() => onOpenTeamModal && onOpenTeamModal(top3.team_id)}
-                  className="order-3 md:order-3 transform md:rotate-2 hover:rotate-0 transition duration-300 cursor-pointer group"
+                  className="order-3 md:order-3 cursor-pointer group"
                 >
-                  <div className="polaroid-card rounded-2xl p-5 border-2 border-amber-700/90 glow-bronze relative overflow-hidden group-hover:border-amber-500">
-                    <div className="bg-gradient-to-b from-slate-900 to-[#0c101c] p-5 rounded-xl border border-slate-700/80">
+                  <div className="polaroid-card rounded-2xl p-5 border-2 border-amber-700/90 breathing-glow-bronze relative overflow-hidden group-hover:border-amber-500">
+                    <div className="bg-gradient-to-b from-slate-900 via-slate-950 to-[#0c101c] p-5 rounded-xl border border-slate-700/80">
                       <div className="flex items-center justify-between mb-4">
                         <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-700 text-amber-100 tracking-wider flex items-center gap-1 shadow-md">
                           <Award className="w-4 h-4 text-amber-100" /> #3 BRONZE
                         </span>
-                        <span className="text-xs text-cyan-400 font-mono font-semibold underline group-hover:text-white">View Roster &rarr;</span>
+                        <span className="text-xs text-cyan-400 font-mono font-semibold underline group-hover:text-white">Roster &rarr;</span>
                       </div>
 
                       <div className="text-center py-3">
@@ -343,37 +325,22 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* ---------------- 3RD PLACE TBD PLACEHOLDER ---------------- */
-                <div className="order-3 md:order-3 transform md:rotate-2 opacity-50">
-                  <div className="polaroid-card rounded-2xl p-5 border-2 border-slate-800 relative overflow-hidden">
-                    <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-800 text-center py-8">
-                      <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-800 text-slate-400 tracking-wider inline-flex items-center gap-1">
-                        <Award className="w-4 h-4 text-slate-500" /> #3 BRONZE (TBD)
-                      </span>
-                      <h3 className="text-xl font-bold text-slate-500 mt-4 font-display">TBD</h3>
-                      <p className="text-xs text-slate-600 mt-1">Awaiting 3rd Place Qualification</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                </motion.div>
+              ) : null}
             </div>
           </div>
 
-          {/* ============================================================ */}
-          {/* RANKS 4 TO 10 REMAINING CONTENDERS LIST (STYLED HIGH-TECH ROWS) */}
-          {/* ============================================================ */}
+          {/* RANKS 4 TO 10 REMAINING CONTENDERS LIST */}
           <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl mt-8">
             <div className="p-5 border-b border-slate-800/80 bg-slate-900/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5 text-cyan-400" />
                 <h2 className="text-lg font-extrabold text-white font-display">
-                  Remaining Circuit Contenders (Ranks 4 &ndash; 10)
+                  Circuit Contenders (Ranks 4 &ndash; 10)
                 </h2>
               </div>
               <span className="text-xs text-cyan-300 font-bold bg-cyan-950/80 px-3 py-1 rounded-full border border-cyan-500/30">
-                {remainingTeams.length} Team{remainingTeams.length === 1 ? '' : 's'} Remaining
+                {remainingTeams.length} Team{remainingTeams.length === 1 ? '' : 's'} Competing
               </span>
             </div>
 
@@ -394,7 +361,7 @@ export default function LeaderboardView({ onOpenTeamModal, onOpenPlayerModal }) 
                   {remainingTeams.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="px-6 py-8 text-center text-slate-500 text-sm font-medium">
-                        No additional contenders in ranks 4 &ndash; 10 recorded for this game circuit.
+                        No additional contenders recorded for this circuit yet.
                       </td>
                     </tr>
                   ) : (
