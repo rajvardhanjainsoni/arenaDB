@@ -162,51 +162,73 @@ export default function TournamentHub() {
       )}
 
       {/* Header Banner */}
-      <div className="glass-card rounded-2xl p-6 relative overflow-hidden border border-cyan-500/20">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="glass-card rounded-2xl p-6 relative overflow-hidden border border-cyan-500/30 shadow-2xl">
+        <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm uppercase tracking-wider mb-1">
-              <Trophy className="w-4 h-4" /> Live & Upcoming Championship Calendar
+            <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs uppercase tracking-widest mb-1.5 font-tech">
+              <Trophy className="w-4 h-4 text-cyan-400" /> Official Global Championship Circuits
             </div>
-            <h1 className="text-3xl font-extrabold text-white font-display">Tournament Hub</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Explore and manage official eSports circuits sorted chronologically by registration & schedule date.
+            <h1 className="text-3xl font-black text-white font-display tracking-tight">Tournament Hub</h1>
+            <p className="text-slate-400 text-sm mt-1 max-w-xl">
+              Track, register, and manage official eSports circuits with real-time relational schema synchronization.
             </p>
           </div>
-          <div className="flex gap-3 self-start md:self-auto">
+          <div className="flex gap-3 self-start md:self-auto font-tech">
             <button 
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white border border-cyan-500/30 rounded-xl text-sm font-bold transition duration-200 shadow-lg shadow-cyan-600/30"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold rounded-xl text-xs transition duration-200 shadow-lg shadow-cyan-500/30"
             >
-              <Plus className="w-4 h-4" /> Create Tournament
+              <Plus className="w-4 h-4 text-black stroke-[3]" /> Create Tournament
             </button>
             <button 
               onClick={fetchTournaments}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 rounded-xl text-sm font-medium transition duration-200"
+              className="flex items-center gap-2 px-3.5 py-2 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 border border-slate-700/80 rounded-xl text-xs font-semibold transition duration-200"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+              <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${loading ? 'animate-spin' : ''}`} /> Sync DB
             </button>
+          </div>
+        </div>
+
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-slate-800/80 font-tech">
+          <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Active Circuits</span>
+            <span className="text-xl font-bold text-white font-code">{tournaments.length}</span>
+          </div>
+          <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Total Prize Pool</span>
+            <span className="text-xl font-bold text-emerald-400 font-code">
+              {formatCurrency(tournaments.reduce((acc, t) => acc + parseFloat(t.prize_pool || 0), 0))}
+            </span>
+          </div>
+          <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Active Games</span>
+            <span className="text-xl font-bold text-cyan-400 font-code">{games.length || 10}</span>
+          </div>
+          <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+            <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Circuit Tier</span>
+            <span className="text-xl font-bold text-amber-400 font-tech">Tier 1 Major</span>
           </div>
         </div>
       </div>
 
       {/* Filter, Search & Chronological Sorting Toolbar */}
-      <div className="glass-card p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="glass-card p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center font-tech">
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-center">
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <div className="relative w-full sm:w-72 font-sans">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input 
               type="text"
-              placeholder="Search tournament or game..."
+              placeholder="Search circuit, game, or publisher..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700/60 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
+              className="w-full bg-[#070a12] border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
             />
           </div>
 
           {/* Chronological Sorting Selector */}
-          <div className="flex items-center gap-2 w-full sm:w-auto bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5">
+          <div className="flex items-center gap-2 w-full sm:w-auto bg-[#070a12] border border-slate-800 rounded-xl px-3 py-1.5">
             <ArrowUpDown className="w-3.5 h-3.5 text-cyan-400" />
             <span className="text-xs font-semibold text-slate-400 uppercase">Sort:</span>
             <select
@@ -215,25 +237,25 @@ export default function TournamentHub() {
               className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
             >
               <option value="newest">Newest First (ID)</option>
-              <option value="chronological_asc">Date: Sept &rarr; Oct &rarr; 2027 (Earliest First)</option>
+              <option value="chronological_asc">Date: Chronological (Earliest)</option>
               <option value="chronological_desc">Date: Latest First</option>
               <option value="prize_desc">Prize Pool: High to Low</option>
             </select>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs text-slate-400 uppercase font-semibold mr-1 flex items-center gap-1">
-            <Tag className="w-3 h-3" /> Genre:
+        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          <span className="text-xs text-slate-400 uppercase font-semibold mr-1 flex items-center gap-1 font-tech">
+            <Tag className="w-3 h-3 text-cyan-400" /> Genre:
           </span>
           {genres.map(genre => (
             <button
               key={genre}
               onClick={() => setSelectedGenre(genre)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 selectedGenre === genre 
                   ? 'bg-cyan-500 text-black font-bold shadow-lg shadow-cyan-500/20' 
-                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
               }`}
             >
               {genre}
@@ -257,78 +279,101 @@ export default function TournamentHub() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedTournaments.map((t) => (
-            <div 
-              key={t.tournament_id} 
-              className="glass-card glass-card-hover rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden border border-slate-800/80 group"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-bl-full pointer-events-none group-hover:bg-cyan-500/10 transition"></div>
-              
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase bg-slate-900 text-cyan-400 border border-cyan-500/30">
-                    {t.genre || 'Esports'}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    {t.tier || 'Tier 1 Premier Major'}
-                  </span>
-                </div>
+          {filteredAndSortedTournaments.map((t) => {
+            const isValorant = (t.game_title || '').toLowerCase().includes('valorant');
+            const isCS = (t.game_title || '').toLowerCase().includes('counter-strike');
+            const isLoL = (t.game_title || '').toLowerCase().includes('league');
+            const isDota = (t.game_title || '').toLowerCase().includes('dota');
+            const isApex = (t.game_title || '').toLowerCase().includes('apex');
+            const isRL = (t.game_title || '').toLowerCase().includes('rocket');
 
-                <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition duration-200 leading-snug">
-                  {t.name}
-                </h3>
+            const badgeColor = isValorant ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
+                               isCS ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
+                               isLoL ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' :
+                               isDota ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' :
+                               isApex ? 'bg-orange-500/20 text-orange-300 border-orange-500/40' :
+                               isRL ? 'bg-blue-500/20 text-blue-300 border-blue-500/40' :
+                               'bg-slate-800 text-slate-300 border-slate-700';
 
-                <div className="flex items-center justify-between text-sm font-semibold text-slate-300 mt-2">
-                  <div className="flex items-center gap-2">
-                    <Gamepad2 className="w-4 h-4 text-cyan-400" />
-                    <span>{t.game_title}</span>
-                    {t.release_year && <span className="text-xs text-slate-500">({t.release_year})</span>}
+            const hoverBorder = isValorant ? 'hover:border-rose-500/50 hover:shadow-rose-500/15' :
+                                isCS ? 'hover:border-amber-500/50 hover:shadow-amber-500/15' :
+                                isLoL ? 'hover:border-cyan-500/50 hover:shadow-cyan-500/15' :
+                                isDota ? 'hover:border-purple-500/50 hover:shadow-purple-500/15' :
+                                'hover:border-cyan-500/50 hover:shadow-cyan-500/15';
+
+            return (
+              <div 
+                key={t.tournament_id} 
+                className={`glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden border border-slate-800/80 group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${hoverBorder}`}
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-bl-full pointer-events-none group-hover:bg-cyan-500/10 transition"></div>
+                
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase border font-tech ${badgeColor}`}>
+                      {t.genre || 'Esports'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/40 font-tech">
+                      {t.tier || 'Tier 1 Premier Major'}
+                    </span>
                   </div>
-                  <span className="flex items-center gap-1 text-xs text-slate-400 bg-slate-900/60 px-2 py-1 rounded-md">
-                    <Building2 className="w-3 h-3 text-purple-400" /> {t.publisher_name || 'Esports Pub'}
-                  </span>
+
+                  <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition duration-200 leading-snug font-display">
+                    {t.name}
+                  </h3>
+
+                  <div className="flex items-center justify-between text-sm font-semibold text-slate-300 mt-2.5">
+                    <div className="flex items-center gap-2">
+                      <Gamepad2 className="w-4 h-4 text-cyan-400" />
+                      <span className="font-tech text-base">{t.game_title}</span>
+                      {t.release_year && <span className="text-xs text-slate-500 font-code">({t.release_year})</span>}
+                    </div>
+                    <span className="flex items-center gap-1 text-xs text-slate-400 bg-slate-900/80 px-2 py-1 rounded-md font-tech border border-slate-800">
+                      <Building2 className="w-3 h-3 text-purple-400" /> {t.publisher_name || 'Publisher'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-800/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-400 font-medium flex items-center gap-1 font-tech">
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Prize Pool
+                    </span>
+                    <span className="text-xl font-extrabold text-emerald-400 font-display">
+                      {formatCurrency(t.prize_pool)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-slate-400 bg-[#070a12] px-3 py-2 rounded-xl border border-slate-800 font-code">
+                    <span className="flex items-center gap-1.5 text-slate-400">
+                      <Calendar className="w-3.5 h-3.5 text-cyan-400" /> Dates:
+                    </span>
+                    <span className="font-semibold text-slate-200">
+                      {formatDate(t.start_date)} - {formatDate(t.end_date)}
+                    </span>
+                  </div>
+
+                  {/* Edit & Delete Action Toolbar */}
+                  <div className="flex items-center justify-between gap-2 pt-2 font-tech">
+                    <button
+                      onClick={() => openEditModal(t)}
+                      className="flex-1 py-2 bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition hover:border-cyan-500/50"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 text-cyan-400" /> Edit Details
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteTournament(t.tournament_id, t.name)}
+                      className="p-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-bold transition hover:border-rose-500"
+                      title="Cancel & Remove Tournament"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-800/80 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Prize Pool
-                  </span>
-                  <span className="text-lg font-extrabold text-emerald-400 font-display">
-                    {formatCurrency(t.prize_pool)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-slate-400 bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-800">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-cyan-400" /> Dates
-                  </span>
-                  <span className="font-semibold text-slate-200">
-                    {formatDate(t.start_date)} - {formatDate(t.end_date)}
-                  </span>
-                </div>
-
-                {/* Edit & Delete Action Toolbar */}
-                <div className="flex items-center justify-between gap-2 pt-2">
-                  <button
-                    onClick={() => openEditModal(t)}
-                    className="flex-1 py-2 bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition"
-                  >
-                    <Edit3 className="w-3.5 h-3.5 text-cyan-400" /> Edit Details
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteTournament(t.tournament_id, t.name)}
-                    className="p-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-bold transition"
-                    title="Cancel & Remove Tournament"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

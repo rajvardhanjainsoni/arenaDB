@@ -4,47 +4,77 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .font-tech {
+    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .font-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .cyber-grid {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+
+  .cyber-radial-bg {
+    background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, rgba(139, 92, 246, 0.06) 40%, transparent 70%);
   }
 
   .glass-card {
-    background: rgba(17, 24, 39, 0.7); /* slate-900 equivalent */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(30, 41, 59, 0.8); /* border-slate-800/80 */
+    background: rgba(12, 16, 25, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .glass-card-hover {
-    transition: all 0.25s ease-in-out;
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-card-hover:hover {
-    border-color: rgba(6, 182, 212, 0.4); /* neon cyan */
-    box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.15);
-    transform: translateY(-2px);
+    border-color: rgba(6, 182, 212, 0.5);
+    box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.25);
+    transform: translateY(-3px);
+  }
+
+  .glass-card-purple-hover {
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-purple-hover:hover {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.25);
+    transform: translateY(-3px);
   }
 
   .glow-cyan {
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.35); /* neon cyan */
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.35);
   }
 
   .glow-violet {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.35); /* electric violet */
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.35);
   }
 
   .glow-rose {
-    box-shadow: 0 0 20px rgba(244, 63, 94, 0.35); /* rose pink */
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.35);
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
   }
 
   .glow-gold {
-    box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); /* gold neon */
+    box-shadow: 0 0 35px rgba(251, 191, 36, 0.45);
   }
 
   .glow-silver {
-    box-shadow: 0 0 30px rgba(226, 232, 240, 0.4); /* silver neon */
+    box-shadow: 0 0 35px rgba(226, 232, 240, 0.45);
   }
 
   .glow-bronze {
-    box-shadow: 0 0 30px rgba(217, 119, 6, 0.4); /* bronze neon */
+    box-shadow: 0 0 35px rgba(217, 119, 6, 0.45);
   }
 
   .breathing-glow-gold {
@@ -61,7 +91,7 @@
 
   .polaroid-card {
     background: linear-gradient(145deg, rgba(17, 24, 39, 0.95), rgba(10, 15, 26, 0.98));
-    border: 4px solid #ffffff;
+    border: 3px solid rgba(255, 255, 255, 0.85);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
   }

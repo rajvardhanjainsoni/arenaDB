@@ -25,6 +25,9 @@ export default function StoreView() {
       .then(([playersData, storeData]) => {
         setPlayers(playersData);
         setItems(storeData);
+        if (playersData && playersData.length > 0) {
+          setSelectedPlayerId(playersData[0].player_id.toString());
+        }
         setLoading(false);
       })
       .catch(err => {

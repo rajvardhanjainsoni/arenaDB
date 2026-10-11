@@ -10,11 +10,11 @@ export default function TelemetryWidget({ onOpenTeamModal, onOpenPlayerModal }) 
 
   // Form State
   const initialFormState = {
-    match_id: '',
+    match_id: '1',
     player_id: '1',
-    avg_ping_ms: '',
-    os_version: '',
-    disconnect_count: ''
+    avg_ping_ms: '42.5',
+    os_version: 'macOS Sequoia 15.3 / Apple M3',
+    disconnect_count: '0'
   };
   const [formData, setFormData] = useState(initialFormState);
   const [submitting, setSubmitting] = useState(false);

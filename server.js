@@ -265,21 +265,265 @@ app.get('/api/players/:id', async (req, res) => {
   }
 });
 
-// 10. GET /api/stats
+// 10. GET /api/stats - Comprehensive Database & System Telemetry
 app.get('/api/stats', async (req, res) => {
   try {
     const tournaments = await queryDB('SELECT COUNT(*) FROM TOURNAMENT;');
+    const players = await queryDB('SELECT COUNT(*) FROM PLAYER;');
+    const teams = await queryDB('SELECT COUNT(*) FROM TEAM;');
+    const games = await queryDB('SELECT COUNT(*) FROM GAME;');
+    const matches = await queryDB('SELECT COUNT(*) FROM MATCH_TABLE;');
     const sponsors = await queryDB('SELECT COUNT(*) FROM PUBLICITY_CAMPAIGN;');
+    const prizePool = await queryDB('SELECT COALESCE(SUM(prize_pool), 0) AS total FROM TOURNAMENT;');
     const highPing = await queryDB('SELECT COUNT(*) FROM MATCH_TELEMETRY WHERE avg_ping_ms > 80;');
+    const items = await queryDB('SELECT COUNT(*) FROM STORE_ITEM;');
+    
     res.json({
-      postgres_status: isPgConnected ? 'PostgreSQL Active' : 'Offline',
+      postgres_status: isPgConnected ? 'PostgreSQL 16 Active' : 'Offline',
+      database_name: 'arenadb',
       tournaments_count: parseInt(tournaments[0]?.count || 0),
+      players_count: parseInt(players[0]?.count || 0),
+      teams_count: parseInt(teams[0]?.count || 0),
+      games_count: parseInt(games[0]?.count || 0),
+      matches_count: parseInt(matches[0]?.count || 0),
+      items_count: parseInt(items[0]?.count || 0),
       sponsors_count: parseInt(sponsors[0]?.count || 0),
+      total_prize_pool: parseFloat(prizePool[0]?.total || 0),
       high_ping_alerts: parseInt(highPing[0]?.count || 0)
     });
   } catch (err) {
     console.error('Error fetching stats:', err);
     res.status(500).json({ error: err.message || 'Failed to fetch stats' });
+  }
+});
+
+// Coursework Predefined Queries (from queries.sql)
+const PREDEFINED_QUERIES = [
+  {
+    id: 1,
+    title: "Active Tournament Teams",
+    category: "INNER JOIN (3 Tables)",
+    description: "Which teams are currently participating in tournaments?",
+    sql: `SELECT DISTINCT t.team_name, tor.name AS tournament_name
+FROM TEAM t
+INNER JOIN MATCH_PARTICIPANT mp ON t.team_id = mp.team_id
+INNER JOIN MATCH_TABLE mt ON mp.match_id = mt.match_id
+INNER JOIN TOURNAMENT tor ON mt.tournament_id = tor.tournament_id;`
+  },
+  {
+    id: 2,
+    title: "Sponsor Reach Aggregation",
+    category: "LEFT JOIN, GROUP BY, COALESCE",
+    description: "Total reach for each sponsor across all campaigns, including those with no campaigns.",
+    sql: `SELECT o.name AS sponsor_name, COALESCE(SUM(c.reach_metrics), 0) AS total_reach
+FROM SPONSOR_ORG o
+LEFT JOIN PUBLICITY_CAMPAIGN c ON o.org_id = c.org_id
+GROUP BY o.name;`
+  },
+  {
+    id: 3,
+    title: "High Scoring Tournaments",
+    category: "GROUP BY + HAVING",
+    description: "Tournaments with an average match score greater than 10.",
+    sql: `SELECT tor.name, ROUND(AVG(mp.score)::numeric, 2) AS avg_score
+FROM TOURNAMENT tor
+INNER JOIN MATCH_TABLE mt ON tor.tournament_id = mt.tournament_id
+INNER JOIN MATCH_PARTICIPANT mp ON mt.match_id = mp.match_id
+GROUP BY tor.name
+HAVING AVG(mp.score) > 10;`
+  },
+  {
+    id: 4,
+    title: "Above-Average Ping Telemetry",
+    category: "Correlated Subquery",
+    description: "Players with higher ping than the average in their respective matches.",
+    sql: `SELECT p.username, mt.avg_ping_ms, mt.match_id
+FROM PLAYER p
+INNER JOIN MATCH_TELEMETRY mt ON p.player_id = mt.player_id
+WHERE mt.avg_ping_ms > (
+    SELECT AVG(avg_ping_ms) 
+    FROM MATCH_TELEMETRY 
+    WHERE match_id = mt.match_id
+);`
+  },
+  {
+    id: 5,
+    title: "Legendary Item Owners",
+    category: "EXISTS Subquery",
+    description: "Players who own at least one 'Legendary' rarity item in their inventory.",
+    sql: `SELECT p.username, p.credits
+FROM PLAYER p
+WHERE EXISTS (
+    SELECT 1 
+    FROM PLAYER_INVENTORY pi
+    INNER JOIN STORE_ITEM si ON pi.item_id = si.item_id
+    WHERE pi.player_id = p.player_id AND si.rarity = 'Legendary'
+);`
+  },
+  {
+    id: 6,
+    title: "Valorant & CS2 Match Winners",
+    category: "IN Condition & Multi-Join",
+    description: "Teams that have won matches in Valorant or Counter-Strike 2.",
+    sql: `SELECT DISTINCT tm.team_name, g.title AS game_title
+FROM TEAM tm
+INNER JOIN MATCH_TABLE mt ON tm.team_id = mt.winner_team_id
+INNER JOIN TOURNAMENT tor ON mt.tournament_id = tor.tournament_id
+INNER JOIN GAME g ON tor.game_id = g.game_id
+WHERE g.title IN ('Valorant', 'Counter-Strike 2');`
+  },
+  {
+    id: 7,
+    title: "Publisher Prize Pool Breakdown",
+    category: "Common Table Expression (CTE)",
+    description: "Total prize pool funding per game publisher across all tournaments.",
+    sql: `WITH PublisherPrize AS (
+    SELECT g.publisher_id, SUM(tor.prize_pool) AS total_prize
+    FROM GAME g
+    INNER JOIN TOURNAMENT tor ON g.game_id = tor.game_id
+    GROUP BY g.publisher_id
+)
+SELECT p.name AS publisher, pp.total_prize
+FROM PUBLISHER p
+INNER JOIN PublisherPrize pp ON p.publisher_id = pp.publisher_id;`
+  },
+  {
+    id: 8,
+    title: "Team Wins Rank per Game",
+    category: "Window Function: RANK() OVER (PARTITION BY)",
+    description: "Ranks teams by their total match victories partitioned by game circuit.",
+    sql: `SELECT 
+    g.title, 
+    tm.team_name, 
+    COUNT(mt.match_id) AS wins,
+    RANK() OVER (PARTITION BY g.game_id ORDER BY COUNT(mt.match_id) DESC) AS circuit_rank
+FROM TEAM tm
+INNER JOIN MATCH_TABLE mt ON tm.team_id = mt.winner_team_id
+INNER JOIN TOURNAMENT tor ON mt.tournament_id = tor.tournament_id
+INNER JOIN GAME g ON tor.game_id = g.game_id
+GROUP BY g.game_id, g.title, tm.team_name;`
+  },
+  {
+    id: 9,
+    title: "Player Credit Wealth Distribution",
+    category: "Window Function: DENSE_RANK()",
+    description: "Dense ranking of all players ordered by active virtual credit balances.",
+    sql: `SELECT 
+    username, 
+    credits,
+    DENSE_RANK() OVER (ORDER BY credits DESC) AS credit_rank
+FROM PLAYER;`
+  },
+  {
+    id: 10,
+    title: "Match Participant Placements",
+    category: "Window Function: ROW_NUMBER()",
+    description: "List match participants with numbered row placements ordered by score per match.",
+    sql: `SELECT 
+    match_id, 
+    team_id, 
+    score,
+    ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY score DESC) AS placement
+FROM MATCH_PARTICIPANT;`
+  },
+  {
+    id: 11,
+    title: "Score Margin Analysis",
+    category: "Window Function: LAG()",
+    description: "Difference in match score between a team and the next highest scoring team.",
+    sql: `SELECT 
+    match_id, 
+    team_id, 
+    score,
+    LAG(score) OVER (PARTITION BY match_id ORDER BY score DESC) - score AS diff_from_previous
+FROM MATCH_PARTICIPANT;`
+  },
+  {
+    id: 12,
+    title: "Cumulative Campaign Budget",
+    category: "Window Function: Running SUM()",
+    description: "Running total of publicity budgets spent sequentially over time per tournament.",
+    sql: `SELECT 
+    tournament_id,
+    platform,
+    budget,
+    SUM(budget) OVER (PARTITION BY tournament_id ORDER BY campaign_id) AS running_budget
+FROM PUBLICITY_CAMPAIGN;`
+  },
+  {
+    id: 13,
+    title: "Industry Taxonomy Categories",
+    category: "Set Operation: UNION",
+    description: "Distinct combination of game genres and sponsor partner classifications.",
+    sql: `SELECT genre AS category FROM GAME
+UNION
+SELECT org_type AS category FROM SPONSOR_ORG;`
+  },
+  {
+    id: 14,
+    title: "Player Economy Wealth Brackets",
+    category: "Conditional Logic: CASE WHEN",
+    description: "Segmentation of player accounts into Wealthy, Average, and Entry brackets.",
+    sql: `SELECT 
+    username, 
+    credits,
+    CASE 
+        WHEN credits > 4000 THEN 'Wealthy'
+        WHEN credits > 2000 THEN 'Average'
+        ELSE 'Poor'
+    END AS wealth_status
+FROM PLAYER;`
+  },
+  {
+    id: 15,
+    title: "2026 Circuit Tournaments",
+    category: "Date Function: EXTRACT(YEAR)",
+    description: "Tournaments scheduled in the current 2026 esports season calendar.",
+    sql: `SELECT name, start_date, prize_pool
+FROM TOURNAMENT
+WHERE EXTRACT(YEAR FROM start_date) = 2026;`
+  }
+];
+
+// GET /api/queries - Returns available presentation SQL queries
+app.get('/api/queries', (req, res) => {
+  return res.json(PREDEFINED_QUERIES);
+});
+
+// POST /api/queries/run - Run a predefined query or custom SELECT query
+app.post('/api/queries/run', async (req, res) => {
+  const { query_id, sql } = req.body;
+  let targetSql = '';
+  
+  if (query_id) {
+    const found = PREDEFINED_QUERIES.find(q => q.id === parseInt(query_id));
+    if (!found) return res.status(404).json({ error: 'Predefined query not found' });
+    targetSql = found.sql;
+  } else if (sql) {
+    const trimmed = sql.trim().toLowerCase();
+    // Security check: only allow read-only SELECT / WITH queries in query explorer
+    if (!trimmed.startsWith('select') && !trimmed.startsWith('with')) {
+      return res.status(403).json({ error: 'Only read-only SELECT/WITH queries are permitted in SQL Explorer.' });
+    }
+    targetSql = sql;
+  } else {
+    return res.status(400).json({ error: 'Missing query_id or sql string' });
+  }
+
+  const startTime = Date.now();
+  try {
+    const queryResult = await pool.query(targetSql);
+    const duration_ms = Date.now() - startTime;
+    return res.json({
+      sql: targetSql,
+      rows: queryResult.rows,
+      fields: queryResult.fields.map(f => f.name),
+      rowCount: queryResult.rowCount,
+      duration_ms
+    });
+  } catch (err) {
+    console.error('Error executing SQL query:', err.message);
+    res.status(400).json({ error: err.message });
   }
 });
 
