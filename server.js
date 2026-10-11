@@ -62,6 +62,7 @@ app.get('/api/tournaments', async (req, res) => {
         t.prize_pool,
         t.start_date,
         t.end_date,
+        t.tier,
         g.game_id,
         g.title AS game_title,
         g.genre,
@@ -530,10 +531,11 @@ app.post('/api/queries/run', async (req, res) => {
 // 11. POST /api/tournaments
 // Parameterized insert to add new tournament directly to PostgreSQL DB
 app.post('/api/tournaments', async (req, res) => {
-  const { name, prize_pool, start_date, end_date, game_id } = req.body;
+  const { name, prize_pool, start_date, end_date, game_id, tier } = req.body;
+  const tournamentTier = tier || 'Tier 1 Premier Major';
   try {
-    const sql = `INSERT INTO TOURNAMENT (name, prize_pool, start_date, end_date, game_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;`;
-    const rows = await queryDB(sql, [name, parseFloat(prize_pool), start_date, end_date, parseInt(game_id)]);
+    const sql = `INSERT INTO TOURNAMENT (name, prize_pool, start_date, end_date, game_id, tier) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;`;
+    const rows = await queryDB(sql, [name, parseFloat(prize_pool), start_date, end_date, parseInt(game_id), tournamentTier]);
     
     const detailsSql = `
       SELECT g.title AS game_title, g.genre, p.name AS publisher_name 
@@ -560,11 +562,12 @@ app.post('/api/tournaments', async (req, res) => {
 // Parameterized update for tournament details
 app.put('/api/tournaments/:id', async (req, res) => {
   const tournamentId = parseInt(req.params.id);
-  const { name, prize_pool, start_date, end_date, game_id } = req.body;
+  const { name, prize_pool, start_date, end_date, game_id, tier } = req.body;
+  const tournamentTier = tier || 'Tier 1 Premier Major';
 
   try {
-    const sql = `UPDATE TOURNAMENT SET name = $1, prize_pool = $2, start_date = $3, end_date = $4, game_id = $5 WHERE tournament_id = $6 RETURNING *;`;
-    const rows = await queryDB(sql, [name, parseFloat(prize_pool), start_date, end_date, parseInt(game_id), tournamentId]);
+    const sql = `UPDATE TOURNAMENT SET name = $1, prize_pool = $2, start_date = $3, end_date = $4, game_id = $5, tier = $6 WHERE tournament_id = $7 RETURNING *;`;
+    const rows = await queryDB(sql, [name, parseFloat(prize_pool), start_date, end_date, parseInt(game_id), tournamentTier, tournamentId]);
     if (!rows || rows.length === 0) return res.status(404).json({ error: 'Tournament not found' });
     
     const detailsSql = `

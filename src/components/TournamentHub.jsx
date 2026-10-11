@@ -147,6 +147,19 @@ export default function TournamentHub() {
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const getTierBadge = (tier) => {
+    switch (tier) {
+      case 'Tier 2 Challenger Circuit':
+        return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40';
+      case 'Collegiate Regional Cup':
+        return 'bg-violet-500/15 text-violet-300 border-violet-500/40';
+      case 'Invitational Showcase':
+        return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40';
+      default:
+        return 'bg-amber-500/15 text-amber-300 border-amber-500/40';
+    }
+  };
+
   return (
     <div className="space-y-6 font-sans">
       {toast && (
@@ -313,7 +326,7 @@ export default function TournamentHub() {
                     <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase border font-tech ${badgeColor}`}>
                       {t.genre || 'Esports'}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/40 font-tech">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border font-tech ${getTierBadge(t.tier)}`}>
                       {t.tier || 'Tier 1 Premier Major'}
                     </span>
                   </div>
@@ -406,11 +419,15 @@ export default function TournamentHub() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Tournament Tier</label>
-                <select value={form.tier} onChange={e => setForm({...form, tier: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
-                  <option>Tier 1 Premier Major</option>
-                  <option>Tier 2 Challenger Circuit</option>
-                  <option>Collegiate Regional Cup</option>
-                  <option>Invitational Showcase</option>
+                <select 
+                  value={form.tier} 
+                  onChange={e => setForm({...form, tier: e.target.value})} 
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none cursor-pointer"
+                >
+                  <option value="Tier 1 Premier Major">Tier 1 Premier Major</option>
+                  <option value="Tier 2 Challenger Circuit">Tier 2 Challenger Circuit</option>
+                  <option value="Collegiate Regional Cup">Collegiate Regional Cup</option>
+                  <option value="Invitational Showcase">Invitational Showcase</option>
                 </select>
               </div>
               <div>
@@ -489,14 +506,14 @@ export default function TournamentHub() {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Tournament Tier</label>
                 <select 
-                  value={editingTournament.tier} 
+                  value={editingTournament.tier || 'Tier 1 Premier Major'} 
                   onChange={e => setEditingTournament({...editingTournament, tier: e.target.value})} 
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none cursor-pointer"
                 >
-                  <option>Tier 1 Premier Major</option>
-                  <option>Tier 2 Challenger Circuit</option>
-                  <option>Collegiate Regional Cup</option>
-                  <option>Invitational Showcase</option>
+                  <option value="Tier 1 Premier Major">Tier 1 Premier Major</option>
+                  <option value="Tier 2 Challenger Circuit">Tier 2 Challenger Circuit</option>
+                  <option value="Collegiate Regional Cup">Collegiate Regional Cup</option>
+                  <option value="Invitational Showcase">Invitational Showcase</option>
                 </select>
               </div>
 
